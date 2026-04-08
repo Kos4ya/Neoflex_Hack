@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: .
+    container_name: user-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/user_db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key-change-me}
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+      - BCRYPT_ROUNDS=12
+      - ENVIRONMENT=development
+      - DEBUG=true
+    env_file:
+      - .env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: user-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=user_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  neo-network:
+    driver: bridge

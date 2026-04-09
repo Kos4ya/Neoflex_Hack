@@ -60,7 +60,6 @@ async def get_room(
         raise HTTPException(status_code=404, detail="Room not found")
     return room
 
-
 @router.get("/by-link/{link}", response_model=RoomResponse)
 async def get_room_by_link(
     link: str,

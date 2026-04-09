@@ -4,8 +4,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 import uuid
 
-from schemas.vacancies import CandidateStatus
-from database.session import Base
+from ..schemas.vacancies import CandidateStatus
+from ..database.session import Base
 
 
 class Vacancy(Base):

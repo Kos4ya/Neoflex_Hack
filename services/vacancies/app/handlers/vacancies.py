@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.vacancies import VacancyCreate, VacancyUpdate, VacancyResponse, CandidateResponse, CandidateCreate, \
+from ..schemas.vacancies import VacancyCreate, VacancyUpdate, VacancyResponse, CandidateResponse, CandidateCreate, \
     CandidateUpdate, CandidateWithStatus
-from database.session import get_db
-from services.vacancy_service import VacancyService
+from ..database.session import get_db
+from ..services.vacancy_service import VacancyService
 from uuid import UUID
 
 router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
 async def get_vacancy_service(db: AsyncSession = Depends(get_db)):
     return VacancyService(db)
 
-@router.get("/vacancies", response_model=VacancyResponse)
+@router.post("/vacancies", response_model=VacancyResponse)
 async def create_vacancy(data: VacancyCreate, service: VacancyService = Depends(get_vacancy_service)):
     vacancy = await service.create_vacancy(data)
     return vacancy

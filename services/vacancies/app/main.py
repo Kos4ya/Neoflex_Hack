@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from handlers import vacancies
+from .handlers import vacancies
 
-from database.session import init_database, close_database
+from .database.session import init_database, close_database
 
 
 @asynccontextmanager

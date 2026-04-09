@@ -5,7 +5,7 @@ from typing import Optional
 class Settings(BaseSettings):
     # Service
     SERVICE_NAME: str = "vacancy-service"
-    PORT: int = 8001
+    PORT: int = 8003
     DEBUG: bool = True
 
     # Database

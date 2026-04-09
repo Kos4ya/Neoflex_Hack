@@ -3,8 +3,8 @@ from sqlalchemy import select, func, and_
 from uuid import UUID
 from typing import List, Optional
 
-from models.vacancies import Vacancy, Candidate, VacancyCandidate
-from schemas.vacancies import (
+from ..models.vacancies import Vacancy, Candidate, VacancyCandidate
+from ..schemas.vacancies import (
     VacancyCreate, VacancyUpdate,
     CandidateCreate, CandidateUpdate,
     CandidateStatus

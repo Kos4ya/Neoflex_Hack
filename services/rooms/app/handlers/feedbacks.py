@@ -10,8 +10,8 @@ router = APIRouter(prefix="/rooms", tags=["Feedbacks"])
 
 @router.get("/{room_id}/feedbacks", response_model=list[FeedbackResponse])
 async def get_room_feedbacks(
-    room_id: UUID,
-    service: RoomService = Depends(get_room_service),
+        room_id: UUID,
+        service: RoomService = Depends(get_room_service),
 ):
     """Получить все фидбеки комнаты"""
     room = await service.get_room(room_id)
@@ -22,16 +22,20 @@ async def get_room_feedbacks(
     return feedbacks
 
 
-@router.post("/{room_id}/feedbacks", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
 async def create_feedback(
-    room_id: UUID,
-    feedback_data: FeedbackCreate,
-    service: RoomService = Depends(get_room_service),
+        room_id: UUID,
+        feedback_data: FeedbackCreate,
+        service: RoomService = Depends(get_room_service),
 ):
-    """Создать фидбек в комнате"""
-    feedback = await service.create_feedback(room_id, feedback_data)
-    if not feedback:
+    """Создание фидбека для комнаты"""
+    # Проверяем, что комната существует
+    room = await service.get_room(room_id)
+    if not room:
         raise HTTPException(status_code=404, detail="Room not found")
+
+    # Создаем фидбек
+    feedback = await service.create_feedback(room_id, feedback_data)
 
     await service.db.commit()
     await service.db.refresh(feedback)
@@ -40,9 +44,9 @@ async def create_feedback(
 
 @router.put("/feedbacks/{feedback_id}", response_model=FeedbackResponse)
 async def update_feedback(
-    feedback_id: UUID,
-    feedback_data: FeedbackUpdate,
-    service: RoomService = Depends(get_room_service),
+        feedback_id: UUID,
+        feedback_data: FeedbackUpdate,
+        service: RoomService = Depends(get_room_service),
 ):
     """Обновить фидбек"""
     feedback = await service.update_feedback(feedback_id, feedback_data)
@@ -56,8 +60,8 @@ async def update_feedback(
 
 @router.delete("/feedbacks/{feedback_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_feedback(
-    feedback_id: UUID,
-    service: RoomService = Depends(get_room_service),
+        feedback_id: UUID,
+        service: RoomService = Depends(get_room_service),
 ):
     """Удалить фидбек"""
     deleted = await service.delete_feedback(feedback_id)

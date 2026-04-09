@@ -231,9 +231,6 @@ class RoomService:
         if not room:
             return None
 
-        if not room.started_at:
-            return 0  # интервью ещё не началось
-
         now = datetime.now(timezone.utc)
         offset = int((now - room.started_at).total_seconds())
         return offset
@@ -479,10 +476,12 @@ class RoomService:
 
         feedback = Feedback(
             room_id=room_id,
+            author_id=feedback_data.author_id,
             text_body=feedback_data.text_body
         )
         self.db.add(feedback)
         await self.db.flush()
+        await self.db.refresh(feedback)
         return feedback
 
     async def update_feedback(
@@ -529,14 +528,13 @@ class RoomService:
     async def create_note(
             self,
             room_id: UUID,
-            note_data: NoteCreate
+            note_data: NoteCreate,
+            time_offset
     ) -> Optional[Note]:
         """Создание заметки для комнаты"""
         room = await self.get_room(room_id)
         if not room:
             return None
-
-        time_offset = await self.get_room_time_offset(room_id)
 
         note = Note(
             room_id=room_id,

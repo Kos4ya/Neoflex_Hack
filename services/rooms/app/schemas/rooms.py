@@ -125,7 +125,7 @@ class RoomMetricWithDetails(RoomMetricResponse):
 class FeedbackBase(BaseModel):
     """Базовые поля фидбека"""
     text_body: str = Field(..., min_length=1, max_length=5000)
-
+    author_id: UUID = Field(..., description="ID автора фидбека (интервьюера или кандидата)")
 
 class FeedbackCreate(FeedbackBase):
     pass
@@ -151,7 +151,12 @@ class NoteBase(BaseModel):
     """Базовые поля заметки"""
     note_body: str = Field(..., min_length=1, max_length=5000)
 
-
+class NoteCreate(NoteBase):
+    """Схема для создания заметки"""
+    time_offset: Optional[int] = Field(
+        None,
+        description="Время от начала интервью в секундах"
+    )
 class NoteCreate(NoteBase):
     pass
 

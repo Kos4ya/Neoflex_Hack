@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Сервисы
     USER_SERVICE_URL: str = "http://localhost:8001"
-    SESSION_SERVICE_URL: str = "http://localhost:8002"
+    ROOM_SERVICE_URL: str = "http://localhost:8002"
     VACANCIES_SERVICE_URL: str = "http://localhost:8003"
 
     # JWT для проверки токенов
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_WINDOW_SECONDS: int = 60
 
     class Config:
+        extra = "ignore"
         env_file = ".env"
 
 

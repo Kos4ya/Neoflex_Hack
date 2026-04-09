@@ -65,22 +65,6 @@ async def auth_proxy(request: Request, path: str):
         headers=dict(response.headers),
     )
 
-
-@app.api_route("/api/v1/room/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def sessions_proxy(request: Request, path: str):
-    """Прокси для Room Service"""
-    response = await gateway.proxy(
-        request=request,
-        service_url=settings.SESSION_SERVICE_URL,
-        path=f"/{path}",
-    )
-    return Response(
-        content=response.content,
-        status_code=response.status_code,
-        headers=dict(response.headers),
-    )
-
-
 @app.api_route("/api/v1/vacancies/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def vacancies_proxy(request: Request, path: str):
     """Прокси для Vacancies Service"""

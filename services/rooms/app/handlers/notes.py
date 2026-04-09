@@ -1,5 +1,6 @@
 from uuid import UUID
-from fastapi import APIRouter, status, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, status, Depends, HTTPException, Query
 
 from .base import get_room_service
 from ..services.room_service import RoomService
@@ -26,10 +27,15 @@ async def get_room_notes(
 async def create_note(
     room_id: UUID,
     note_data: NoteCreate,
+    time_offset: Optional[int] = Query(None, description="Время от начала интервью в секундах"),
     service: RoomService = Depends(get_room_service),
 ):
     """Создать заметку в комнате"""
-    note = await service.create_note(room_id, note_data)
+    room = await service.get_room(room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    note = await service.create_note(room_id, note_data, time_offset)
     if not note:
         raise HTTPException(status_code=404, detail="Room not found")
 

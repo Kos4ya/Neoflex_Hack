@@ -1,6 +1,10 @@
+# database/session.py
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 from typing import AsyncGenerator
+from uuid import uuid4
+from sqlalchemy import select
+
 from ..config import settings
 
 Base = declarative_base()
@@ -30,8 +34,53 @@ async def init_database():
         autoflush=False,
     )
 
+    # Создаем таблицы
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Инициализируем начальные данные
+    await init_initial_data()
+
+
+async def init_initial_data():
+    """Инициализация начальных данных в БД"""
+    from ..models.metric import Metric  # Импортируем здесь, чтобы избежать циклических импортов
+
+    INITIAL_METRICS = [
+        {"name": "Решение задач", "scale_from": 0, "scale_to": 10, "visible": True},
+        {"name": "Качество кода", "scale_from": 0, "scale_to": 10, "visible": True},
+        {"name": "Коммуникация", "scale_from": 0, "scale_to": 10, "visible": True},
+        {"name": "Системное мышление", "scale_from": 0, "scale_to": 10, "visible": True},
+        {"name": "Отладка", "scale_from": 0, "scale_to": 10, "visible": True},
+    ]
+
+    async with _async_sessionmaker() as session:
+        # Проверяем, есть ли уже метрики в БД
+        result = await session.execute(select(Metric))
+        existing_metrics = result.scalars().all()
+
+        if existing_metrics:
+            print(f"📊 Метрики уже существуют в БД ({len(existing_metrics)} шт.)")
+            return
+
+        # Добавляем начальные метрики
+        metrics_to_add = []
+        for metric_data in INITIAL_METRICS:
+            metric = Metric(
+                id=uuid4(),
+                name=metric_data["name"],
+                scale_from=metric_data["scale_from"],
+                scale_to=metric_data["scale_to"],
+                visible=metric_data["visible"]
+            )
+            metrics_to_add.append(metric)
+
+        session.add_all(metrics_to_add)
+        await session.commit()
+
+        print(f"✅ Добавлено {len(metrics_to_add)} начальных метрик в БД")
+        for metric in metrics_to_add:
+            print(f"  - {metric.name} (scale: {metric.scale_from}-{metric.scale_to})")
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

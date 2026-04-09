@@ -1,0 +1,10 @@
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: #7a7d95;
+    gap: 8px;
+    font-family: "'Plus Jakarta Sans', sans-serif",
+}

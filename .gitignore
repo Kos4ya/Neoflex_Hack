@@ -27,6 +27,18 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+node_modules/
+.pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+npm-debug.log*
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+.vite/
+.eslintcache
+.prettiercache
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

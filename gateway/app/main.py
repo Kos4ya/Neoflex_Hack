@@ -9,7 +9,6 @@ from .gateway import gateway
 from .middleware.auth import AuthMiddleware
 from .middleware.logging import LoggingMiddleware
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -67,9 +66,9 @@ async def auth_proxy(request: Request, path: str):
     )
 
 
-@app.api_route("/api/v1/sessions/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/api/v1/room/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def sessions_proxy(request: Request, path: str):
-    """Прокси для Session Service"""
+    """Прокси для Room Service"""
     response = await gateway.proxy(
         request=request,
         service_url=settings.SESSION_SERVICE_URL,
@@ -112,6 +111,51 @@ async def candidates_proxy(request: Request, path: str):
     )
 
 
+@app.api_route("/api/v1/rooms/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def rooms_proxy(request: Request, path: str):
+    """Прокси для Room Service"""
+    response = await gateway.proxy(
+        request=request,
+        service_url=settings.ROOM_SERVICE_URL,
+        path=f"/{path}",
+    )
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+    )
+
+
+@app.api_route("/api/v1/interviews/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def interviews_proxy(request: Request, path: str):
+    """Прокси для Interview Service"""
+    response = await gateway.proxy(
+        request=request,
+        service_url=settings.INTERVIEW_SERVICE_URL,
+        path=f"/{path}",
+    )
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+    )
+
+
+@app.api_route("/api/v1/interviews", methods=["GET", "POST"])
+async def interviews_root_proxy(request: Request):
+    """Прокси для корневого эндпоинта Interview Service"""
+    response = await gateway.proxy(
+        request=request,
+        service_url=settings.INTERVIEW_SERVICE_URL,
+        path="/",
+    )
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+    )
+
+
 @app.get("/health")
 async def health():
     return {
@@ -135,7 +179,7 @@ async def root():
         "endpoints": {
             "users": "/api/v1/users/*",
             "auth": "/api/v1/auth/*",
-            "sessions": "/api/v1/sessions/*",
+            "sessions": "/api/v1/rooms/*",
             "vacancies": "/api/v1/vacancies/*",
             "candidates": "/api/v1/candidates/*",
         }

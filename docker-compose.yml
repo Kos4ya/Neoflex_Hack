@@ -70,16 +70,16 @@ services:
 
 
   session:
-    build: ./services/session
+    build: ./services/rooms
     container_name: session-service
     ports:
       - "8002:8002"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:password@session-postgres:5432/session_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@session-postgres:5432/room_db
       - USER_SERVICE_URL=http://users:8001
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
     env_file:
-      - ./services/session/.env
+      - ./services/rooms/.env
     depends_on:
       session-postgres:
         condition: service_healthy
@@ -95,7 +95,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=session_db
+      - POSTGRES_DB=room_db
     ports:
       - "5433:5432"
     volumes:

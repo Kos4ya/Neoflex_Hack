@@ -13,18 +13,30 @@ router = APIRouter(prefix="/rooms/metrics", tags=["Metrics"])
 async def list_metrics(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
-    visible_only: bool = False,
-    name: Optional[str] = None,
+    visible_only: bool = Query(False, description="Только видимые метрики"),
+    name: Optional[str] = Query(None, description="Поиск по имени"),
     service: RoomService = Depends(get_room_service),
 ):
-    """Список метрик с фильтрацией"""
+    """Получение списка всех метрик (справочник)"""
     metrics = await service.list_metrics(
         skip=skip,
         limit=limit,
         visible_only=visible_only,
-        name=name,
+        name=name
     )
     return metrics
+
+
+@router.post("/", response_model=MetricResponse, status_code=status.HTTP_201_CREATED)
+async def create_metric(
+    metric_data: MetricCreate,
+    service: RoomService = Depends(get_room_service),
+):
+    """Создание новой метрики"""
+    metric = await service.create_metric(metric_data)
+    await service.db.commit()
+    await service.db.refresh(metric)
+    return metric
 
 
 @router.get("/{metric_id}", response_model=MetricResponse)
@@ -36,18 +48,6 @@ async def get_metric(
     metric = await service.get_metric(metric_id)
     if not metric:
         raise HTTPException(status_code=404, detail="Metric not found")
-    return metric
-
-
-@router.post("/", response_model=MetricResponse, status_code=status.HTTP_201_CREATED)
-async def create_metric(
-    metric_data: MetricCreate,
-    service: RoomService = Depends(get_room_service),
-):
-    """Создание метрики"""
-    metric = await service.create_metric(metric_data)
-    await service.db.commit()
-    await service.db.refresh(metric)
     return metric
 
 

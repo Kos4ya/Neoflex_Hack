@@ -1,5 +1,3 @@
-"""Основные CRUD операции с комнатами"""
-
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Query, status, Depends, HTTPException
@@ -11,7 +9,7 @@ from ..schemas.rooms import (
     RoomUpdate,
     RoomResponse,
     RoomWithDetails,
-    GenerateLinkResponse,
+    GenerateLinkResponse, RoomResultUpdate, RoomResultEnum,
 )
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
@@ -109,3 +107,45 @@ async def get_room_with_details(
     if not details:
         raise HTTPException(status_code=404, detail="Room not found")
     return details
+
+
+# handlers/rooms.py (добавить новые эндпоинты)
+
+@router.patch("/{room_id}/result", response_model=RoomResponse)
+async def update_room_result(
+        room_id: UUID,
+        result_data: RoomResultUpdate,
+        service: RoomService = Depends(get_room_service),
+):
+    """Обновление результата интервью (пройдено/не пройдено)"""
+    # Преобразуем enum в boolean
+    result_bool = result_data.result == RoomResultEnum.PASSED
+
+    room = await service.update_room_result(room_id, result_bool)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    await service.db.commit()
+    await service.db.refresh(room)
+    return room
+
+
+@router.get("/by-result/{result}", response_model=List[RoomResponse])
+async def get_rooms_by_result(
+        result: RoomResultEnum,
+        skip: int = Query(0, ge=0),
+        limit: int = Query(100, ge=1, le=500),
+        service: RoomService = Depends(get_room_service),
+):
+    """Получение комнат по результату (passed/failed/pending)"""
+    if result == RoomResultEnum.PENDING:
+        result_bool = None
+    else:
+        result_bool = result == RoomResultEnum.PASSED
+
+    rooms = await service.get_rooms_by_result(
+        result=result_bool,
+        skip=skip,
+        limit=limit
+    )
+    return rooms

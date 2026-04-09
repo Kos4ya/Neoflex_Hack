@@ -1,3 +1,4 @@
+# schemas/rooms.py
 from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import datetime
 from uuid import UUID
@@ -5,37 +6,11 @@ from typing import Optional, List
 from enum import Enum
 
 
-class RoomStatusEnum(str, Enum):
-    """Статусы комнаты"""
-    CREATED = "created"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-
-class RoomStartRequest(BaseModel):
-    """Запрос на начало интервью"""
-    started_at: Optional[datetime] = Field(None, description="Время начала (опционально, по умолчанию сейчас)")
-
-
-class RoomCompleteRequest(BaseModel):
-    """Запрос на завершение интервью"""
-    finished_at: Optional[datetime] = Field(None, description="Время окончания (опционально, по умолчанию сейчас)")
-
-
-class RoomDurationResponse(BaseModel):
-    """Ответ с длительностью интервью"""
-    room_id: UUID
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
-    duration_seconds: int
-    duration_minutes: float
-    status: str
-
-
-class RoomStatusUpdate(BaseModel):
-    """Обновление статуса комнаты"""
-    status: RoomStatusEnum
+class RoomResultEnum(str, Enum):
+    """Результат интервью"""
+    PASSED = "passed"  # Пройдено
+    FAILED = "failed"  # Не пройдено
+    PENDING = "pending"  # В ожидании (не завершено)
 
 
 class RoomBase(BaseModel):
@@ -43,6 +18,7 @@ class RoomBase(BaseModel):
     candidate_id: UUID = Field(..., description="ID кандидата")
     interviewer_id: UUID = Field(..., description="ID интервьюера")
     vacancy_id: UUID = Field(..., description="ID вакансии")
+    language: str = Field(..., description="Язык интервью")
 
 
 class RoomCreate(RoomBase):
@@ -55,18 +31,17 @@ class RoomUpdate(BaseModel):
     candidate_id: Optional[UUID] = None
     interviewer_id: Optional[UUID] = None
     vacancy_id: Optional[UUID] = None
+    language: Optional[str] = None
+    result: Optional[RoomResultEnum] = None  # Добавляем возможность обновления результата
 
 
 class RoomResponse(RoomBase):
     """Схема для ответа API"""
     id: UUID
     link: str
-    status: str = Field(default="created", description="Статус комнаты: created, active, completed, cancelled")
-
+    result: Optional[RoomResultEnum] = Field(None, description="Результат интервью: passed/failed/pending")
     created_at: datetime
     updated_at: Optional[datetime] = None
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -80,12 +55,18 @@ class RoomWithDetails(RoomResponse):
     codes: List["CodeResponse"] = []
 
 
+class RoomResultUpdate(BaseModel):
+    """Обновление результата комнаты"""
+    result: RoomResultEnum = Field(..., description="Результат интервью: passed/failed")
+
+
 class MetricBase(BaseModel):
     """Базовые поля метрики"""
     name: str = Field(..., min_length=1, max_length=255)
     scale_from: int = Field(default=0, ge=0, le=100)
     scale_to: int = Field(default=10, ge=1, le=100)
     visible: bool = Field(default=True)
+
 
 class MetricCreate(MetricBase):
     """Схема для создания метрики"""
@@ -99,6 +80,7 @@ class MetricUpdate(BaseModel):
     scale_to: Optional[int] = Field(None, ge=1, le=100)
     visible: Optional[bool] = None
 
+
 class MetricResponse(MetricBase):
     """Схема для ответа API"""
     id: UUID
@@ -111,8 +93,6 @@ class MetricResponse(MetricBase):
 
 class RoomMetricBase(BaseModel):
     """Базовые поля связи комната-метрика"""
-    # metric_id: UUID = Field(..., description="ID метрики")
-    # room_id: UUID = Field(..., description="ID комнаты")
     result: Optional[float] = Field(None, description="Результат оценки")
 
 
@@ -202,7 +182,6 @@ class NoteResponse(NoteBase):
         minutes = self.time_offset // 60
         seconds = self.time_offset % 60
         return f"{minutes:02d}:{seconds:02d}"
-
 
 
 class CodeBase(BaseModel):

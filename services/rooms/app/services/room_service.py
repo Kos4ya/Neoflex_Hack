@@ -30,7 +30,6 @@ class RoomService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-
     async def list_rooms(
             self,
             skip: int = 0,
@@ -76,10 +75,11 @@ class RoomService:
             link = generate_room_link()
 
         room = Room(
-            candidate_id=room_data.candidate_id,
             interviewer_id=room_data.interviewer_id,
+            candidate_id=room_data.candidate_id,
             vacancy_id=room_data.vacancy_id,
-            link=link
+            link=link,
+            language=room_data.language
         )
         self.db.add(room)
         await self.db.flush()
@@ -155,6 +155,7 @@ class RoomService:
             "id": room.id,
             "candidate_id": room.candidate_id,
             "interviewer_id": room.interviewer_id,
+            "language": room.language,
             "vacancy_id": room.vacancy_id,
             "link": room.link,
             "created_at": room.created_at,
@@ -185,7 +186,6 @@ class RoomService:
         await self.db.flush()
         return room
 
-
     async def complete_room(self, room_id: UUID) -> Optional[Room]:
         """
         Завершить интервью в комнате.
@@ -204,7 +204,6 @@ class RoomService:
 
         await self.db.flush()
         return room
-
 
     async def cancel_room(self, room_id: UUID) -> Optional[Room]:
         """
@@ -239,7 +238,6 @@ class RoomService:
         offset = int((now - room.started_at).total_seconds())
         return offset
 
-
     async def get_active_rooms(
             self,
             skip: int = 0,
@@ -255,7 +253,6 @@ class RoomService:
         query = query.offset(skip).limit(limit)
         result = await self.db.execute(query)
         return result.scalars().all()
-
 
     async def get_room_duration(self, room_id: UUID) -> Optional[dict]:
         """
@@ -281,7 +278,6 @@ class RoomService:
             "status": room.status
         }
 
-
     async def get_rooms_by_status(
             self,
             status: str,
@@ -293,7 +289,6 @@ class RoomService:
         query = query.offset(skip).limit(limit)
         result = await self.db.execute(query)
         return result.scalars().all()
-
 
     async def list_metrics(
             self,
@@ -359,7 +354,6 @@ class RoomService:
         await self.db.delete(metric)
         await self.db.flush()
         return True
-
 
     async def get_room_metrics(self, room_id: UUID) -> List[RoomMetric]:
         """Получение всех метрик комнаты с результатами"""
@@ -466,7 +460,6 @@ class RoomService:
             "total": len(metric_ids)
         }
 
-
     async def get_room_feedbacks(self, room_id: UUID) -> List[Feedback]:
         """Получение всех фидбеков комнаты"""
         result = await self.db.execute(
@@ -525,7 +518,6 @@ class RoomService:
         await self.db.delete(feedback)
         await self.db.flush()
         return True
-
 
     async def get_room_notes(self, room_id: UUID) -> List[Note]:
         """Получение всех заметок комнаты"""
@@ -589,7 +581,6 @@ class RoomService:
         await self.db.commit()
         return True
 
-
     async def get_room_codes(self, room_id: UUID) -> List[Code]:
         """Получение всего кода комнаты"""
         result = await self.db.execute(
@@ -648,3 +639,38 @@ class RoomService:
         await self.db.delete(code)
         await self.db.flush()
         return True
+
+    # services/room_service.py (добавить новые методы)
+
+    async def update_room_result(
+            self,
+            room_id: UUID,
+            result: bool  # True - пройдено, False - не пройдено
+    ) -> Optional[Room]:
+        """Обновление результата интервью в комнате"""
+        room = await self.get_room(room_id)
+        if not room:
+            return None
+
+        room.result = result
+        await self.db.flush()
+        return room
+
+    async def get_rooms_by_result(
+            self,
+            result: Optional[bool] = None,  # True/False/None (pending)
+            skip: int = 0,
+            limit: int = 100
+    ) -> List[Room]:
+        """Получить комнаты по результату"""
+        query = select(Room)
+
+        if result is not None:
+            query = query.where(Room.result == result)
+        else:
+            # Получить комнаты без результата (pending)
+            query = query.where(Room.result.is_(None))
+
+        query = query.offset(skip).limit(limit)
+        result_query = await self.db.execute(query)
+        return result_query.scalars().all()

@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  collaboration:
+    build: .
+    container_name: collaboration_service
+    ports:
+      - "8010:8010"
+    environment:
+      APP_NAME: collaboration-service
+      APP_PORT: 8010
+      ROOMS_SERVICE_URL: http://rooms:8000
+      JWT_SECRET: change-me
+      JWT_ALGORITHM: HS256
+      SAVE_DEBOUNCE_SECONDS: 0.5
+    restart: unless-stopped

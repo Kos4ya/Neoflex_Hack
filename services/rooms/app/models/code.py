@@ -15,6 +15,7 @@ class Code(Base):
         UUID(as_uuid=True),
         ForeignKey("rooms.id", ondelete="CASCADE"),
         nullable=False,
+        unique=True,
         index=True
     )
     code_body = Column(Text, nullable=False)

@@ -15,11 +15,12 @@ class Note(Base):
         UUID(as_uuid=True),
         ForeignKey("rooms.id", ondelete="CASCADE"),
         nullable=False,
+        unique=True,
         index=True
     )
     note_body = Column(Text, nullable=False)
     time_offset = Column(Integer, nullable=True)
-
+    version = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

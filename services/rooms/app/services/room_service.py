@@ -648,3 +648,4 @@ class RoomService:
         await self.db.delete(code)
         await self.db.flush()
         return True
+

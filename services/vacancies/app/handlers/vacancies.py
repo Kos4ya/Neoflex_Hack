@@ -7,7 +7,7 @@ from ..database.session import get_db
 from ..services.vacancy_service import VacancyService
 from uuid import UUID
 
-router = APIRouter(prefix="/vacancies", tags=["Vacancies"])
+router = APIRouter()
 
 
 async def get_vacancy_service(db: AsyncSession = Depends(get_db)):

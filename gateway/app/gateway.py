@@ -1,6 +1,6 @@
 import httpx
 from fastapi import Request, HTTPException
-from typing import Dict, Any
+from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,31 +17,45 @@ class ServiceGateway:
             request: Request,
             service_url: str,
             path: str,
-            method: str = None,
     ) -> Any:
-        """
-        Проксирует запрос к указанному сервису
-        """
+        """Проксирует запрос к указанному сервису"""
+
+        # Формируем целевой URL
         target_url = f"{service_url}{path}"
 
-        body = None
-        if method in ["POST", "PUT", "PATCH"]:
-            body = await request.body()
+        # Получаем тело запроса
+        body = await request.body()
 
-        headers = dict(request.headers)
-        headers.pop("host", None)
+        # Подготавливаем заголовки - убираем проблемные
+        headers = {}
+        for key, value in request.headers.items():
+            key_lower = key.lower()
+            # Пропускаем проблемные заголовки
+            if key_lower in [
+                "host",
+                "content-length",
+                "transfer-encoding",
+                "connection",
+                "accept-encoding"
+            ]:
+                continue
+            headers[key] = value
+
+        # Добавляем правильный Content-Type если есть тело
+        if body and "content-type" not in headers:
+            headers["content-type"] = "application/json"
 
         try:
+            # Отправляем запрос к сервису
             response = await self.client.request(
-                method=method or request.method,
+                method=request.method,
                 url=target_url,
                 headers=headers,
-                content=body,
-                params=request.query_params,
+                content=body if body else None,
+                params=dict(request.query_params),
             )
 
-            logger.debug(f"Proxy {request.method} {path} → {response.status_code}")
-
+            logger.info(f"Proxy {request.method} {path} → {response.status_code}")
             return response
 
         except httpx.TimeoutException:
@@ -49,10 +63,11 @@ class ServiceGateway:
                 status_code=504,
                 detail="Service timeout"
             )
-        except httpx.ConnectError:
+        except httpx.ConnectError as e:
+            logger.error(f"Connect error to {service_url}: {e}")
             raise HTTPException(
                 status_code=503,
-                detail="Service unavailable"
+                detail=f"Service {service_url} unavailable"
             )
         except Exception as e:
             logger.error(f"Proxy error: {e}")
@@ -65,4 +80,5 @@ class ServiceGateway:
         await self.client.close()
 
 
+# Создаем экземпляр gateway
 gateway = ServiceGateway()

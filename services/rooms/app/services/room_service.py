@@ -6,8 +6,8 @@ import secrets
 import string
 from datetime import datetime, timezone
 
-from app.models.rooms import Room, Metric, RoomMetric, Feedback, Note, Code
-from app.schemas.rooms import (
+from ..models import *
+from ..schemas.rooms import (
     RoomCreate, RoomUpdate,
     MetricCreate, MetricUpdate,
     RoomMetricCreate, RoomMetricUpdate,

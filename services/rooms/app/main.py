@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .handlers import rooms
+from .handlers import all_routers
 
 from .database.session import init_database, close_database
 
@@ -33,7 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(rooms.router)
+for router in all_routers:
+    app.include_router(router)
 
 
 @app.get("/")

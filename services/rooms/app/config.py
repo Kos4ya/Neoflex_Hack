@@ -5,7 +5,7 @@ from typing import Optional
 class Settings(BaseSettings):
     # Service
     SERVICE_NAME: str = "room-service"
-    PORT: int = 8003
+    PORT: int = 8002
     DEBUG: bool = True
 
     # Database
@@ -35,6 +35,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
         case_sensitive = True
 
 

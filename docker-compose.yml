@@ -1,0 +1,164 @@
+networks:
+  neo-network:
+    driver: bridge
+
+volumes:
+  postgres_users_data:
+  postgres_session_data:
+  postgres_vacancies_data:
+  redis_data:
+
+
+services:
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - USER_SERVICE_URL=http://users:8001
+      - SESSION_SERVICE_URL=http://session:8002
+      - VACANCIES_SERVICE_URL=http://vacancies:8003
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - users
+      - session
+      - vacancies
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+
+  users:
+    build: ./services/users
+    container_name: users-service
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@users-postgres:5432/users_db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
+    env_file:
+      - ./services/users/.env
+    depends_on:
+      users-postgres:
+        condition: service_healthy
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+  users-postgres:
+    image: postgres:15-alpine
+    container_name: users-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=users_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+
+  session:
+    build: ./services/session
+    container_name: session-service
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@session-postgres:5432/session_db
+      - USER_SERVICE_URL=http://users:8001
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
+    env_file:
+      - ./services/session/.env
+    depends_on:
+      session-postgres:
+        condition: service_healthy
+      users:
+        condition: service_started
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+  session-postgres:
+    image: postgres:15-alpine
+    container_name: session-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=session_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_session_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+
+  vacancies:
+    build: ./services/vacancies
+    container_name: vacancies-service
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@vacancies-postgres:5432/vacancies_db
+      - USER_SERVICE_URL=http://users:8001
+      - SESSION_SERVICE_URL=http://session:8002
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
+    env_file:
+      - ./services/vacancies/.env
+    depends_on:
+      vacancies-postgres:
+        condition: service_healthy
+      users:
+        condition: service_started
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+  vacancies-postgres:
+    image: postgres:15-alpine
+    container_name: vacancies-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=vacancies_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_vacancies_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neo-network
+    restart: unless-stopped
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: neo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - neo-network
+    restart: unless-stopped

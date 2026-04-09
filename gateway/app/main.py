@@ -101,7 +101,7 @@ async def rooms_proxy(request: Request, path: str):
     response = await gateway.proxy(
         request=request,
         service_url=settings.ROOM_SERVICE_URL,
-        path=f"/{path}",
+        path=f"/{path}" if path else "",
     )
     return Response(
         content=response.content,
@@ -115,7 +115,7 @@ async def interviews_proxy(request: Request, path: str):
     """Прокси для Interview Service"""
     response = await gateway.proxy(
         request=request,
-        service_url=settings.INTERVIEW_SERVICE_URL,
+        service_url=settings.ROOM_SERVICE_URL,
         path=f"/{path}",
     )
     return Response(
@@ -130,7 +130,7 @@ async def interviews_root_proxy(request: Request):
     """Прокси для корневого эндпоинта Interview Service"""
     response = await gateway.proxy(
         request=request,
-        service_url=settings.INTERVIEW_SERVICE_URL,
+        service_url=settings.ROOM_SERVICE_URL,
         path="/",
     )
     return Response(
@@ -147,9 +147,8 @@ async def health():
         "status": "healthy",
         "services": {
             "user": settings.USER_SERVICE_URL,
-            "session": settings.SESSION_SERVICE_URL,
+            "session": settings.ROOM_SERVICE_URL,
             "vacancies": settings.VACANCIES_SERVICE_URL,
-            "feedback": settings.FEEDBACK_SERVICE_URL,
         }
     }
 
@@ -163,7 +162,7 @@ async def root():
         "endpoints": {
             "users": "/api/v1/users/*",
             "auth": "/api/v1/auth/*",
-            "sessions": "/api/v1/rooms/*",
+            "rooms": "/api/v1/rooms/*",
             "vacancies": "/api/v1/vacancies/*",
             "candidates": "/api/v1/candidates/*",
         }

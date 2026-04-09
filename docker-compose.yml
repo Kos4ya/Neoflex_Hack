@@ -17,7 +17,7 @@ services:
       - "8080:8080"
     environment:
       - USER_SERVICE_URL=http://users:8001
-      - SESSION_SERVICE_URL=http://session:8002
+      - ROOM_SERVICE_URL=http://session:8002
       - VACANCIES_SERVICE_URL=http://vacancies:8003
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
     env_file:
@@ -118,7 +118,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:password@vacancies-postgres:5432/vacancies_db
       - USER_SERVICE_URL=http://users:8001
-      - SESSION_SERVICE_URL=http://session:8002
+      - ROOM_SERVICE_URL=http://session:8002
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-my-super-secret-key}
     env_file:
       - ./services/vacancies/.env

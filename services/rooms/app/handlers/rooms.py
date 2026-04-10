@@ -3,7 +3,10 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Query, status, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..schemas.code import UpdateCurrentCodeRequest, CurrentCodeResponse
+from ..database.session import get_db
 from .base import get_room_service
 from ..services.room_service import RoomService
 from ..schemas.rooms import (
@@ -21,8 +24,8 @@ router = APIRouter(prefix="/rooms", tags=["Rooms"])
 async def list_rooms(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
-    candidate_id: Optional[UUID] = None,
-    interviewer_id: Optional[UUID] = None,
+    # candidate_id: Optional[UUID] = None,
+    # interviewer_id: Optional[UUID] = None,
     vacancy_id: Optional[UUID] = None,
     service: RoomService = Depends(get_room_service),
 ):
@@ -30,8 +33,8 @@ async def list_rooms(
     rooms = await service.list_rooms(
         skip=skip,
         limit=limit,
-        candidate_id=candidate_id,
-        interviewer_id=interviewer_id,
+        # candidate_id=candidate_id,
+        # interviewer_id=interviewer_id,
         vacancy_id=vacancy_id,
     )
     return rooms
@@ -110,3 +113,5 @@ async def get_room_with_details(
     if not details:
         raise HTTPException(status_code=404, detail="Room not found")
     return details
+
+

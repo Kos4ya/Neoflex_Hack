@@ -76,8 +76,8 @@ class RoomService:
             link = generate_room_link()
 
         room = Room(
-            candidate_id=room_data.candidate_id,
-            interviewer_id=room_data.interviewer_id,
+            # candidate_id=room_data.candidate_id,
+            # interviewer_id=room_data.interviewer_id,
             vacancy_id=room_data.vacancy_id,
             link=link
         )
@@ -649,3 +649,32 @@ class RoomService:
         await self.db.flush()
         return True
 
+    async def get_current_code(self, room_id):
+        result = await self.db.execute(
+            select(Code)
+            .where(Code.room_id == room_id)
+            .order_by(Code.updated_at.desc(), Code.created_at.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def upsert_current_code(self, room_id: UUID, code_body: str, version: int | None = None) -> Code:
+        room = await self.get_room(room_id)
+        if not room:
+            raise ValueError("Room not found")
+
+        code = await self.get_current_code(room_id)
+
+        if code is None:
+            code = Code(
+                room_id=room_id,
+                code_body=code_body,
+                version=version or 1,
+            )
+            self.db.add(code)
+        else:
+            code.code_body = code_body
+            code.version = version if version is not None else code.version + 1
+
+        await self.db.flush()
+        return code

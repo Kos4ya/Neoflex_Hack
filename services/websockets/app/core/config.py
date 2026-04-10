@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     APP_PORT: int = 8010
 
     ROOMS_SERVICE_URL: str = "http://rooms:8000"
+    # ROOMS_SERVICE_URL: str = "http://localhost:8000"  #для проверки на локалке
 
     JWT_SECRET: str = "change-me"
     JWT_ALGORITHM: str = "HS256"

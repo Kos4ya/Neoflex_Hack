@@ -40,8 +40,8 @@ class RoomStatusUpdate(BaseModel):
 
 class RoomBase(BaseModel):
     """Базовые поля комнаты"""
-    candidate_id: UUID = Field(..., description="ID кандидата")
-    interviewer_id: UUID = Field(..., description="ID интервьюера")
+    # candidate_id: UUID = Field(..., description="ID кандидата")
+    # interviewer_id: UUID = Field(..., description="ID интервьюера")
     vacancy_id: UUID = Field(..., description="ID вакансии")
 
 

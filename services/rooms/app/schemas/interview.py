@@ -15,7 +15,7 @@ class InterviewStatusEnum(str, Enum):
 class InterviewBase(BaseModel):
     """Базовые поля интервью"""
     interviewer_id: UUID = Field(..., description="ID интервьюера")
-    candidate_id: UUID = Field(..., description="ID кандидата")
+    # candidate_id: UUID = Field(..., description="ID кандидата")
     scheduled_at: Optional[datetime] = Field(None, description="Запланированное время")
 
 

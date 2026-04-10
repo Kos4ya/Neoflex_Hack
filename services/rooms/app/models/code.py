@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, Text, DateTime, ForeignKey, Index
+from sqlalchemy import Column, Text, DateTime, ForeignKey, Index, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -19,7 +19,7 @@ class Code(Base):
         index=True
     )
     code_body = Column(Text, nullable=False)
-
+    version = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     room = relationship("Room", back_populates="codes")

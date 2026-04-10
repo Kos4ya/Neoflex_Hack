@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.interview import Interview, InterviewStatus
 from app.schemas.interview import InterviewCreate, InterviewUpdate
+import secrets
 
 
 class InterviewService:
@@ -16,11 +17,14 @@ class InterviewService:
         self.db = db
 
     async def create_interview(self, data: InterviewCreate) -> Interview:
+        candidate_token = secrets.token_urlsafe(32)
+
         """Создание нового интервью"""
         interview = Interview(
             room_id=data.room_id,
             interviewer_id=data.interviewer_id,
-            candidate_id=data.candidate_id,
+            # candidate_id=data.candidate_id,
+            candidate_token=candidate_token,
             vacancy_id=data.vacancy_id,
             scheduled_at=data.scheduled_at,
             status=InterviewStatus.SCHEDULED

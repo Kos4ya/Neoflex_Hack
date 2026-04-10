@@ -30,8 +30,8 @@ class Interview(Base):
 
     # Участники (внешние сервисы)
     interviewer_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-    candidate_id = Column(UUID(as_uuid=True), nullable=False, index=True)
-
+    candidate_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    candidate_token = Column(String, nullable=False, unique=True, index=True)
     # Временные метки
     scheduled_at = Column(DateTime(timezone=True), nullable=True, index=True)
     started_at = Column(DateTime(timezone=True), nullable=True)

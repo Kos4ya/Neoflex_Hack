@@ -1,0 +1,19 @@
+:root {
+  --bg: #0e0f13;
+  --surface: #16171d;
+  --surface-alt: #1c1d25;
+  --border: #2a2b35;
+  --border-focus: #5b5eff;
+  --text: #e2e4f0;
+  --text-muted: #7a7d95;
+  --text-dim: #50526a;
+  --accent: #5b5eff;
+  --accent-soft: rgba(91,94,255,.12);
+  --green: #34d399;
+  --green-soft: rgba(52,211,153,.12);
+  --yellow: #fbbf24;
+  --yellow-soft: rgba(251,191,36,.12);
+  --red: #f87171;
+  --red-soft: #rgba(248,113,113,.12);
+  --orange: #fb923c;
+}
